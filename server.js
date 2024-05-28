@@ -14,9 +14,9 @@ mongoose
   .connect(process.env.DATABASE_LOCAL, {
     useNewUrlParser: true,
     useCreateIndex: true,
-    useFindAndModify: false,
+    useFindAndModify: false
   })
-  .then((con) => {
+  .then(con => {
     console.log("DB connections Succesful");
   });
 
