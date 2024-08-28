@@ -2,6 +2,7 @@ const express = require("express");
 const tourController = require("./../controllers/tourController");
 const authController = require("./../controllers/authController");
 const reviewRouter = require("./../routes/reviewRoutes");
+const { route } = require("../app");
 
 const router = express.Router();
 
@@ -22,6 +23,10 @@ router
     authController.restrictTo("admin", "lead-guide", "guide"),
     tourController.getMonthlyPlan
   );
+
+router
+  .route("/tours-within/:distance/center/:latlng/unit/:unit")
+  .get(tourController.getToursWithin);
 
 router
   .route("/")
