@@ -174,12 +174,13 @@ tourSchema.post(/^find/, function(docs, next) {
 });
 
 // AGGREGATION MIDDLEWARE
-tourSchema.pre("aggregate", function(next) {
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+// Getting rid of as $geoNear needs to be first stage in aggregation pipeline
+// tourSchema.pre("aggregate", function(next) {
+//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
 
-  console.log(this.pipeline());
-  next();
-});
+//   console.log(this.pipeline());
+//   next();
+// });
 
 tourSchema.pre(/^find/, function(next) {
   this.populate({
