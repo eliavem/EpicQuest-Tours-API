@@ -2,6 +2,8 @@ const Tour = require("./../models/tourModel");
 const catchAsync = require("./../utils/catchAsync");
 const AppError = require("./../utils/appError");
 const factory = require("./handlerFactory");
+const APIFeatures = require("./../utils/apiFeatures");
+
 
 exports.aliasTopTours = (req, res, next) => {
   req.query.limit = "5";
@@ -10,15 +12,87 @@ exports.aliasTopTours = (req, res, next) => {
   next();
 };
 
-exports.getAllTours = factory.getAll(Tour);
+// exports.getAllTours = factory.getAll(Tour);
 
-exports.getTour = factory.getOne(Tour, { path: "reviews" });
+// exports.getTour = factory.getOne(Tour, { path: "reviews" });
 
 exports.createTour = factory.createOne(Tour);
 
 exports.updateTour = factory.updateOne(Tour);
 
 exports.deleteTour = factory.deleteOne(Tour);
+
+exports.getTour = catchAsync(async (req, res, next) => {
+  const tour = await Tour.findById(req.params.id).populate('reviews');
+
+  if (!tour) {
+    return next(new AppError('No tour found with that ID', 404));
+  }
+
+  const tourObject = tour.toObject();
+
+  // Construct URL for cover image
+  tourObject.imageCover = `${req.protocol}://${req.get('host')}/img/tours/${tourObject.imageCover}`;
+  
+  // Construct URLs for all images in the images array
+  tourObject.images = tourObject.images.map(image => 
+    `${req.protocol}://${req.get('host')}/img/tours/${image}`
+  );
+  
+  // Handle guide photos if needed
+  if (tourObject.guides) {
+    tourObject.guides = tourObject.guides.map(guide => ({
+      ...guide,
+      photo: guide.photo ? `${req.protocol}://${req.get('host')}/img/users/${guide.photo}` : null
+    }));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      data: tourObject
+    }
+  });
+});
+
+exports.getAllTours = catchAsync(async (req, res, next) => {
+  const features = new APIFeatures(Tour.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+  const tours = await features.query;
+
+  const toursWithUrls = tours.map(tour => {
+    const tourObject = tour.toObject();
+    
+    // Construct URL for cover image
+    tourObject.imageCover = `${req.protocol}://${req.get('host')}/img/tours/${tourObject.imageCover}`;
+    
+    // Construct URLs for all images in the images array
+    tourObject.images = tourObject.images.map(image => 
+      `${req.protocol}://${req.get('host')}/img/tours/${image}`
+    );
+    
+    // Handle guide photos if needed
+    if (tourObject.guides) {
+      tourObject.guides = tourObject.guides.map(guide => ({
+        ...guide,
+        photo: guide.photo ? `${req.protocol}://${req.get('host')}/img/users/${guide.photo}` : null
+      }));
+    }
+    
+    return tourObject;
+  });
+
+  res.status(200).json({
+    status: 'success',
+    results: toursWithUrls.length,
+    data: {
+      data: toursWithUrls
+    }
+  });
+});
 
 exports.getTourStats = catchAsync(async (req, res, next) => {
   const stats = await Tour.aggregate([

@@ -21,6 +21,9 @@ app.use(cors());
 
 // 1) GLOBAL MIDDLEWARES
 
+// Serving static files
+app.use(express.static(`${__dirname}/public`));
+
 // Set security http headers
 app.use(helmet());
 
@@ -58,9 +61,6 @@ app.use(
     ]
   })
 );
-
-// Serving static files
-app.use(express.static(`${__dirname}/public`));
 
 // Test middleware
 app.use((req, res, next) => {
