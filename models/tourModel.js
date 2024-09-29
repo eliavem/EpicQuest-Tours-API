@@ -106,6 +106,18 @@ const tourSchema = new mongoose.Schema(
         day: Number
       }
     ],
+    city: {
+      type: String,
+      required: [true, "A tour must have a city"]
+    },
+    region: {
+      type: String,
+      required: [true, "A tour must have a region"]
+    },
+    category: {
+      type: String,
+      required: [true, "A tour must have a category"]
+    },
     guides: [
       {
         type: mongoose.Schema.ObjectId,
