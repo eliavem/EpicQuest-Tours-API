@@ -9,14 +9,14 @@ const multerStorage = multer.diskStorage({
     cb(null, "public/img/users");
   },
   filename: (req, file, cb) => {
-  const ext = file.mimetype.split("/")[1];
+    const ext = file.mimetype.split("/")[1]; // Obtained from file resturned field 
     cb(null, `user-${req.user.id}-${Date.now()}.${ext}`);
   }
 });
 
 // Test if uploaded file is an image
 const multerFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith("image")) {
+  if (file.mimetype.startsWith("image")) { // mimetype always starts with image
     cb(null, true);
   } else {
     cb(new AppError("Not an image! Please upload only images.", 400), false);
@@ -48,6 +48,10 @@ exports.getMe = (req, res, next) => {
 };
 
 exports.updateMe = catchAsync(async (req, res, next) => {
+  // console.log("testing updateMe");
+  // console.log(req.file);
+  // console.log("testing body");
+  // console.log(req.body);
 
   // 1) create error if user tries to update password
   if (req.body.password || req.body.passwordConfirm) {
@@ -61,6 +65,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 
   // Filter out fields that are not allowed to be updated
   const filteredBody = filterObj(req.body, "name", "email");
+  if (req.file) filteredBody.photo = req.file.filename;
 
   // update user document
   const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
