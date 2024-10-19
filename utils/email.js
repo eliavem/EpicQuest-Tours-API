@@ -6,12 +6,22 @@ module.exports = class Email {
     this.to = user.email;
     this.firstName = user.name.split("")[0];
     this.url = url;
-    this.from = `admin2 <${process.env.EMAIL_FROM}>`
+    this.from = `admin2 <${process.env.EMAIL_FROM}>`;
+    // this.from = `ali <${process.env.SENDGRID_EMAIL_FROM}>`;
   }
 
   newTransport() {
     if(process.env.NODE_ENV === 'production') {
-      return 1;
+      console.log('in production');
+      return nodemailer.createTransport({
+        host: process.env.SENDGRID_EMAIL_HOST,
+        port: process.env.SENDGRID_EMAIL_PORT,
+        secure: false,
+        auth: {
+          user: process.env.SENDGRID_USERNAME,
+          pass: process.env.SENDGRID_PASSWORD
+        }
+      });
     }
 
     return nodemailer.createTransport({
@@ -38,7 +48,14 @@ module.exports = class Email {
 
     // console.log('mailOptions', mailOptions);
     // Create Transporter and send email
-    await this.newTransport().sendMail(mailOptions);
+    try {
+      await this.newTransport().sendMail(mailOptions);
+      console.log('Email sent successfully');
+    } catch (err) {
+      console.error('Error sending email:', err); // Log the full error object
+      throw new Error('Email sending failed');
+    }
+    // await this.newTransport().sendMail(mailOptions);
   }
 
   async sendWelcome() {
